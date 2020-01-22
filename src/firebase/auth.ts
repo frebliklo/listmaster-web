@@ -8,7 +8,7 @@ export const createUserWithEmailAndPassword = (email: string, password: string) 
 export const signInWithEmailAndPassword = (email: string, password: string) =>
   auth().signInWithEmailAndPassword(email, password)
 
-export const signInWithGoogle = () => auth().signInWithRedirect(googleProvider)
+export const signInWithGoogle = () => auth().signInWithPopup(googleProvider)
 
 export const signOut = () => auth().signOut()
 

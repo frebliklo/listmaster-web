@@ -1,11 +1,12 @@
 import React, { useContext } from 'react'
+import { RouteComponentProps } from '@reach/router'
 
 import { AuthContext } from '../context'
 import { signOut } from '../firebase/auth'
 
 interface Props {}
 
-const Home: React.FC<Props> = () => {
+const Home: React.FC<Props & RouteComponentProps> = () => {
   const { user } = useContext(AuthContext)
 
   const onSignOut = () => {

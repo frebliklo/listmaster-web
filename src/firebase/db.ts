@@ -1,7 +1,7 @@
 import { db } from './firebase'
 
 export const createUser = (
-  id: string,
+  uid: string,
   username: string,
   email: string,
   firstName?: string,
@@ -10,7 +10,7 @@ export const createUser = (
   db
     .collection('users')
     .add({
-      id,
+      uid,
       username,
       email,
       firstName,
@@ -24,3 +24,28 @@ export const getUsers = () =>
     .collection('users')
     .get()
     .then(snapshot => snapshot.docs)
+
+export const getUser = (uid: string) =>
+  db
+    .collection('users')
+    .doc(uid)
+    .get()
+    .then(doc => {
+      if (doc.exists) {
+        return {
+          error: null,
+          data: doc.data,
+        }
+      } else {
+        return {
+          error: null,
+          data: null,
+        }
+      }
+    })
+    .catch(err => {
+      return {
+        error: err,
+        data: null,
+      }
+    })

@@ -1,11 +1,12 @@
 import React, { useContext } from 'react'
+import { RouteComponentProps } from '@reach/router'
 
 import { signInWithGoogle } from '../firebase/auth'
 import { AuthContext } from '../context'
 
 interface Props {}
 
-const SignIn: React.FC<Props> = () => {
+const SignIn: React.FC<Props & RouteComponentProps> = () => {
   const { setLoading } = useContext(AuthContext)
 
   const onSignInWithGoogle = () => {

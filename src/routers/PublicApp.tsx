@@ -1,5 +1,5 @@
 import React from 'react'
-import { BrowserRouter as Router, Switch, Route } from 'react-router-dom'
+import { Router } from '@reach/router'
 
 import SignIn from '../containers/SignIn'
 
@@ -8,11 +8,7 @@ interface Props {}
 const PublicApp: React.FC<Props> = () => {
   return (
     <Router>
-      <Switch>
-        <Route exact path="/">
-          <SignIn />
-        </Route>
-      </Switch>
+      <SignIn path="/" />
     </Router>
   )
 }
