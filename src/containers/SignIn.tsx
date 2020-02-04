@@ -1,31 +1,35 @@
-import React, { useContext } from 'react'
+import { GoogleButton } from '@frebliklo/ls-ds'
 import { RouteComponentProps } from '@reach/router'
+import React, { useState } from 'react'
+import { connect } from 'react-redux'
 
-import { signInWithGoogle } from '../firebase/auth'
-import { AuthContext } from '../context'
+import { startGoogleLogin, AuthAction } from '../actions'
+import { ThunkDispatch } from 'redux-thunk'
 
-interface Props {}
+interface Props {
+  startGoogleLogin: () => Promise<firebase.auth.UserCredential>
+}
 
-const SignIn: React.FC<Props & RouteComponentProps> = () => {
-  const { setLoading } = useContext(AuthContext)
+const SignIn: React.FC<Props & RouteComponentProps> = ({ startGoogleLogin }) => {
+  const [loading, setLoading] = useState<boolean>(false)
 
-  const onSignInWithGoogle = () => {
+  const handleSignInWithGoogle = () => {
     setLoading(true)
-
-    signInWithGoogle()
-      .then(() => console.log('signed in'))
-      .catch(e => {
-        setLoading(false)
-        console.log(e)
-      })
+    startGoogleLogin()
   }
 
   return (
     <div>
       <h1>Sign in</h1>
-      <button onClick={onSignInWithGoogle}>Sign in with Google</button>
+      <GoogleButton onClick={handleSignInWithGoogle} isLoading={loading}>
+        Sign in with Google
+      </GoogleButton>
     </div>
   )
 }
 
-export default SignIn
+const mapDispatchToProps = (dispatch: ThunkDispatch<any, any, AuthAction>) => ({
+  startGoogleLogin: () => dispatch(startGoogleLogin()),
+})
+
+export default connect(null, mapDispatchToProps)(SignIn)

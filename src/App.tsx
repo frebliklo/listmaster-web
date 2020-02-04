@@ -1,37 +1,54 @@
-import React, { useEffect, useState } from 'react'
-import { auth } from 'firebase'
+import { global, tokens } from '@frebliklo/ls-ds'
+import { createHistory } from '@reach/router'
+import React, { useEffect } from 'react'
+import { connect } from 'react-redux'
+import { Dispatch } from 'redux'
+import styled from 'styled-components'
 
 import './index.css'
 
-import { AuthContext } from './context'
 import PrivateApp from './routers/PrivateApp'
 import PublicApp from './routers/PublicApp'
 
 import FullpageLoader from './components/FullpageLoader'
 
-const App: React.FC = () => {
-  const [loading, setLoading] = useState<boolean>(true)
-  const [user, setUser] = useState<firebase.User | null>(null)
-  const [profileCompleted, setProfileCompleted] = useState<boolean | null>(null)
+import { AuthState, StoreState } from './reducers'
+import { setAuthLoading } from './actions'
 
+interface Props {
+  auth?: AuthState
+  setAuthLoading: typeof setAuthLoading
+}
+
+const { COLOR } = tokens
+
+const Background = styled.div`
+  background: ${COLOR.bg};
+`
+
+export const history = createHistory(window as any)
+
+const App: React.FC<Props> = ({ auth, setAuthLoading }) => {
   useEffect(() => {
-    setLoading(true)
-
-    const unsubscribe = auth().onAuthStateChanged(userState => {
-      setUser(userState)
-
-      setLoading(false)
-    })
-
-    return () => unsubscribe()
-  }, [])
+    if (auth && auth.loading) {
+      setAuthLoading(false)
+    }
+  }, [auth, setAuthLoading])
 
   return (
-    <AuthContext.Provider
-      value={{ user, loading, setLoading, profileCompleted, setProfileCompleted }}>
-      {loading ? <FullpageLoader /> : user ? <PrivateApp /> : <PublicApp />}
-    </AuthContext.Provider>
+    <Background>
+      <global.GlobalStyle />
+      {auth?.loading ? <FullpageLoader /> : !!auth!.uid ? <PrivateApp /> : <PublicApp />}
+    </Background>
   )
 }
 
-export default App
+const mapStateToProps = ({ auth }: StoreState): { auth: AuthState } => ({
+  auth,
+})
+
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  setAuthLoading: (isLoading: boolean) => dispatch(setAuthLoading(isLoading)),
+})
+
+export default connect(mapStateToProps, mapDispatchToProps)(App)

@@ -1,16 +1,30 @@
-import { db } from './firebase'
+import firebase from 'firebase'
 
-export const createUser = (
-  uid: string,
-  username: string,
-  email: string,
-  firstName?: string,
-  lastName?: string,
-) =>
+import { db } from './firebase'
+import { List, User } from '../actions'
+
+type CreateUserInput = {
+  uid: string
+  avatar?: string | null
+  username: string
+  email: string
+  firstName?: string | null
+  lastName?: string | null
+}
+
+export const createUser = ({
+  uid,
+  avatar = null,
+  username,
+  email,
+  firstName = null,
+  lastName = null,
+}: CreateUserInput) =>
   db
     .collection('users')
     .add({
       uid,
+      avatar,
       username,
       email,
       firstName,
@@ -25,27 +39,76 @@ export const getUsers = () =>
     .get()
     .then(snapshot => snapshot.docs)
 
-export const getUser = (uid: string) =>
-  db
-    .collection('users')
-    .doc(uid)
-    .get()
-    .then(doc => {
-      if (doc.exists) {
-        return {
-          error: null,
-          data: doc.data,
-        }
-      } else {
-        return {
-          error: null,
-          data: null,
-        }
-      }
-    })
-    .catch(err => {
-      return {
-        error: err,
-        data: null,
-      }
-    })
+export const getUser = async (uid: string) => {
+  return new Promise<User | null>((resolve, reject) => {
+    db.collection('users')
+      .where('uid', '==', uid)
+      .get({ source: 'default' })
+      .then(querySnapshot => {
+        querySnapshot.forEach(doc => {
+          if (doc.exists) {
+            const data = doc.data() as User
+
+            resolve(data)
+          } else {
+            resolve(null)
+          }
+        })
+      })
+      .catch(err => {
+        reject(err)
+      })
+  })
+}
+
+interface CreateListInput {
+  name: string
+  image?: string | null
+  owner: string
+}
+
+export const createList = ({ name, owner, image = null }: CreateListInput) => {
+  return new Promise<List>((resolve, reject) => {
+    db.collection('lists')
+      .add({
+        name,
+        image,
+        owner,
+        createdAt: firebase.firestore.Timestamp.fromDate(new Date()),
+        updatedAt: firebase.firestore.Timestamp.fromDate(new Date()),
+      })
+      .then(ref => {
+        ref.get().then(doc => {
+          const data = doc.data() as List
+
+          resolve(data)
+        })
+      })
+      .catch(err => {
+        reject(err)
+      })
+  })
+}
+
+export const getLists = (uid: string) => {
+  return new Promise<List[]>(async (resolve, reject) => {
+    const lists: List[] = []
+
+    const querySnapshot = await db
+      .collection('lists')
+      .where('owner', '==', uid)
+      .get()
+
+    try {
+      querySnapshot.forEach(doc => {
+        const data = doc.data() as List
+
+        lists.push(data)
+      })
+
+      resolve(lists)
+    } catch (err) {
+      reject(err)
+    }
+  })
+}

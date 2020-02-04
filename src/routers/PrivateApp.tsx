@@ -1,38 +1,33 @@
-import React, { useContext, useEffect } from 'react'
-import { Router, Redirect } from '@reach/router'
+import { Router } from '@reach/router'
+import React from 'react'
+import { connect } from 'react-redux'
 
-import { AuthContext } from '../context'
+import { StoreState, AuthState } from '../reducers'
 
 import Home from '../containers/Home'
-import { db } from '../firebase'
 import Profile from '../containers/Profile'
 import ProfileComplete from '../containers/ProfileComplete'
 
-interface Props {}
+import FullpageLoader from '../components/FullpageLoader'
 
-const PrivateApp: React.FC<Props> = () => {
-  const { user, profileCompleted, setProfileCompleted } = useContext(AuthContext)
+interface Props {
+  auth?: AuthState
+}
 
-  useEffect(() => {
-    if (user) {
-      db.getUser(user!.uid).then(res => {
-        if (!res.data) {
-          setProfileCompleted(false)
-        } else {
-          setProfileCompleted(true)
-        }
-      })
-    }
-  }, [user, profileCompleted, setProfileCompleted])
-
-  return (
+const PrivateApp: React.FC<Props> = ({ auth }) => {
+  return !auth?.loading ? (
     <Router>
-      {!profileCompleted && <Redirect from="/" to="/profile/complete" />}
       <Home path="/" />
       <Profile path="/profile" />
       <ProfileComplete path="/profile/complete" />
     </Router>
+  ) : (
+    <FullpageLoader />
   )
 }
 
-export default PrivateApp
+const mapStateToProps = ({ auth }: StoreState): { auth: AuthState } => ({
+  auth,
+})
+
+export default connect(mapStateToProps, null)(PrivateApp)
